@@ -357,3 +357,4 @@ body.modal-open { overflow: hidden; }
   .exit-offer > p:not(.eyebrow), .exit-points { display: none; }
   .exit-close { background: rgba(255, 255, 255, .15); color: #fff; }
 }
+.lead-form .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Lead Vitality™ Admin</title>
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <!-- LOGIN -->
+  <main class="login" id="login-view" hidden>
+    <form class="login-card" id="login-form">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="M5 17h5l3-7 4 13 3-9 2 3h5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Lead Vitality<sup>™</sup> Admin</span>
+      </div>
+      <p class="muted">Sign in to see new prospects and sign-ups.</p>
+      <label><span>Email</span><input type="email" name="email" autocomplete="username" required value="mike@bluestonepartnersllc.com"></label>
+      <label><span>Password</span><input type="password" name="password" autocomplete="current-password" required></label>
+      <button class="btn btn-primary" type="submit">Sign in</button>
+      <p class="form-error" id="login-error" role="alert"></p>
+    </form>
+  </main>
+
+  <!-- DASHBOARD -->
+  <div id="app-view" hidden>
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="M5 17h5l3-7 4 13 3-9 2 3h5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Lead Vitality<sup>™</sup> <em>Admin</em></span>
+      </div>
+      <div class="topbar-right">
+        <span class="muted" id="last-updated"></span>
+        <span class="user" id="user-email"></span>
+        <button class="btn btn-ghost btn-sm" id="logout">Sign out</button>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <div class="page-head">
+        <div>
+          <h1>Prospects &amp; sign-ups</h1>
+          <p class="muted">Everyone who filled out the territory check or the 15 free leads offer.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-ghost" id="refresh">Refresh</button>
+          <a class="btn btn-primary" href="/api/admin/leads.csv" id="export">Export CSV</a>
+        </div>
+      </div>
+
+      <section class="kpis" aria-label="Summary">
+        <div class="kpi"><span class="kpi-label">Total</span><span class="kpi-num" id="kpi-total">0</span><span class="kpi-sub" id="kpi-total-sub"></span></div>
+        <div class="kpi"><span class="kpi-label">Last 7 days</span><span class="kpi-num" id="kpi-week">0</span><span class="kpi-sub" id="kpi-week-sub"></span></div>
+        <div class="kpi"><span class="kpi-label">New, not yet contacted</span><span class="kpi-num" id="kpi-new">0</span><span class="kpi-sub">Need follow-up</span></div>
+        <div class="kpi"><span class="kpi-label">15 free leads offer</span><span class="kpi-num" id="kpi-exit">0</span><span class="kpi-sub">From the popup</span></div>
+        <div class="kpi"><span class="kpi-label">Territory checks</span><span class="kpi-num" id="kpi-territory">0</span><span class="kpi-sub">From the main form</span></div>
+        <div class="kpi"><span class="kpi-label">Won</span><span class="kpi-num" id="kpi-won">0</span><span class="kpi-sub" id="kpi-won-sub"></span></div>
+      </section>
+
+      <section class="charts">
+        <figure class="card chart-card">
+          <figcaption><h2>Sign-ups per day</h2><span class="muted">Last 30 days</span></figcaption>
+          <div class="chart" id="daily-chart"></div>
+        </figure>
+        <figure class="card chart-card">
+          <figcaption><h2>By niche</h2><span class="muted">All time</span></figcaption>
+          <div class="niche-bars" id="niche-chart"></div>
+        </figure>
+      </section>
+
+      <section class="card table-card">
+        <div class="filters" role="search">
+          <input type="search" id="f-search" placeholder="Search name, business, email, phone, ZIP…" aria-label="Search">
+          <select id="f-source" aria-label="Source">
+            <option value="">All sources</option>
+            <option value="exit-intent-15-free-leads">15 free leads offer</option>
+            <option value="territory-check">Territory check</option>
+          </select>
+          <select id="f-status" aria-label="Status"><option value="">All statuses</option></select>
+          <select id="f-niche" aria-label="Niche"><option value="">All niches</option></select>
+          <select id="f-range" aria-label="Date range">
+            <option value="">All time</option>
+            <option value="1">Today</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+        </div>
+        <div class="table-scroll">
+          <table class="leads">
+            <thead>
+              <tr>
+                <th>Received</th>
+                <th>Prospect</th>
+                <th>Contact</th>
+                <th>Niche</th>
+                <th>ZIP</th>
+                <th>Source</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="lead-rows"></tbody>
+          </table>
+        </div>
+        <p class="empty" id="empty" hidden></p>
+        <p class="count muted" id="count"></p>
+      </section>
+    </main>
+  </div>
+
+  <!-- DETAIL DRAWER -->
+  <dialog class="drawer" id="drawer" aria-labelledby="d-name">
+    <div class="drawer-head">
+      <div>
+        <h2 id="d-name"></h2>
+        <p class="muted" id="d-business"></p>
+      </div>
+      <button class="icon-btn" data-close aria-label="Close">×</button>
+    </div>
+    <div class="drawer-actions">
+      <a class="btn btn-primary btn-sm" id="d-call">Call</a>
+      <a class="btn btn-ghost btn-sm" id="d-email">Email</a>
+      <a class="btn btn-ghost btn-sm" id="d-text">Text</a>
+    </div>
+    <dl class="details" id="d-details"></dl>
+    <label class="field">
+      <span>Status</span>
+      <select id="d-status"></select>
+    </label>
+    <label class="field">
+      <span>Notes</span>
+      <textarea id="d-notes" rows="5" placeholder="Call notes, next steps…"></textarea>
+    </label>
+    <div class="drawer-foot">
+      <button class="btn btn-primary" id="d-save">Save</button>
+      <span class="muted" id="d-saved" role="status"></span>
+      <button class="btn btn-danger btn-sm" id="d-delete">Delete</button>
+    </div>
+  </dialog>
+
+  <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+  <script src="/admin/admin.js" defer></script>
+</body>
+</html>

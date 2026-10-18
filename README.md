@@ -19,26 +19,54 @@ Marketing site for **Lead Vitality™**, which delivers high-intent, ready-to-bu
 ## Project structure
 
 ```
-index.html              Page markup
-assets/css/styles.css   Styles (responsive, honors reduced motion)
-assets/js/main.js       Industry data, ROI calculator, nav, form handling
-assets/img/favicon.svg  Logo mark
+server.js                      Node server: serves the site, stores leads, admin API
+public/index.html              Marketing page
+public/assets/css/styles.css   Site styles (responsive, honors reduced motion)
+public/assets/js/main.js       Industry data, ROI calculator, popup, form handling
+public/assets/img/favicon.svg  Logo mark
+public/admin/                  Admin dashboard (index.html, admin.css, admin.js)
 ```
 
-There is no build step. It is plain HTML, CSS and JS.
+There is no build step and no npm dependencies. It needs Node 20 or newer.
 
 ## Run locally
 
 ```bash
-python3 -m http.server 8000
-# open http://localhost:8000
+ADMIN_PASSWORD=choose-a-password npm start
+# site:  http://localhost:3000
+# admin: http://localhost:3000/admin
 ```
 
-## Receiving form submissions
+## Admin dashboard
 
-By default the form only shows a confirmation message on screen. To receive submissions, set `FORM_ENDPOINT` at the top of `assets/js/main.js` to any endpoint that accepts a JSON POST, such as Formspree, a Zapier/Make webhook or your CRM's intake URL.
+Go to `/admin` and sign in. The dashboard shows:
 
-Each submission includes a `source` field: `territory-check` for the main form and `exit-intent-15-free-leads` for the popup.
+- **Summary:** total sign-ups, last 7 days, leads not yet contacted, the split between the 15 free leads popup and the territory check, and how many you've won.
+- **Charts:** sign-ups per day for the last 30 days, and sign-ups by niche.
+- **A table of every prospect**, with search and filters for source, status, niche and date range. Change a lead's status right in the table.
+- **A detail panel** (click a row) with every field, the UTM campaign and referrer they came from, call/text/email buttons, notes, and delete.
+- **Export CSV** of every lead.
+
+The page refreshes on its own every minute.
+
+### Server settings (environment variables)
+
+| Variable | Purpose |
+|---|---|
+| `ADMIN_EMAIL` | Admin login email. Defaults to `mike@bluestonepartnersllc.com`. |
+| `ADMIN_PASSWORD` | Admin login password. **Required**: logins are refused until it's set. |
+| `SESSION_SECRET` | Long random string used to sign login sessions. Without it, you're signed out whenever the server restarts. |
+| `DATA_DIR` | Folder where `leads.json` is stored. On Railway, point it at a mounted volume (`/data`) so leads survive redeploys. |
+| `PORT` | Set automatically by Railway. |
+
+## Form submissions
+
+Both forms post to `/api/leads` on the same server, which saves them to `leads.json` in `DATA_DIR`. Each lead records:
+
+- its `source`: `territory-check` for the main form, `exit-intent-15-free-leads` for the popup
+- the visitor's UTM tags and referring site, if any
+
+The endpoint is rate-limited per IP address and has a hidden spam-trap field.
 
 ## Exit-intent popup
 
@@ -56,4 +84,10 @@ Industries live in the `INDUSTRIES` array in `assets/js/main.js`. Each entry dri
 
 ## Deploying
 
-Any static host works: GitHub Pages, Netlify, Vercel, Cloudflare Pages or S3. Point it at the repository root.
+The site runs on Railway as a Node service (`npm start`). It needs:
+
+- a volume mounted at `/data`
+- `DATA_DIR=/data`
+- `ADMIN_PASSWORD` and `SESSION_SECRET` set in the service's variables
+
+A static-only host won't work anymore, because the forms and the admin page need the server.

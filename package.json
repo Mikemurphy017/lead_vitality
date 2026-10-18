@@ -1,0 +1,13 @@
+{
+  "name": "lead-vitality",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lead Vitality marketing site, lead capture API and admin dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

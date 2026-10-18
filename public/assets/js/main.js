@@ -1,8 +1,23 @@
 // Lead Vitality™ site behavior
 
-// Set this to a form backend URL (Formspree, Netlify, Zapier webhook, your CRM, etc.)
-// to receive submissions. When empty, submissions are only confirmed on-screen.
-const FORM_ENDPOINT = '';
+// Submissions go to the site's own server (server.js), which stores them for the admin page.
+const FORM_ENDPOINT = '/api/leads';
+
+// Remember where the visitor came from (UTM tags, referrer) for the first page they landed on.
+const ATTRIBUTION = (() => {
+  const params = new URLSearchParams(location.search);
+  const fresh = {};
+  ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].forEach((k) => {
+    if (params.get(k)) fresh[k] = params.get(k);
+  });
+  if (document.referrer && !document.referrer.startsWith(location.origin)) fresh.referrer = document.referrer;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem('lv_attribution') || 'null');
+    if (saved) return saved;
+    sessionStorage.setItem('lv_attribution', JSON.stringify(fresh));
+  } catch { /* storage unavailable */ }
+  return fresh;
+})();
 
 const INDUSTRIES = [
   {
@@ -205,7 +220,7 @@ function attachLeadForm(form, { source, successMessage, onSuccess }) {
       return;
     }
 
-    const data = { ...Object.fromEntries(new FormData(form)), source };
+    const data = { ...ATTRIBUTION, ...Object.fromEntries(new FormData(form)), source, page: location.pathname };
     submit.disabled = true;
     submit.textContent = 'Sending…';
 
