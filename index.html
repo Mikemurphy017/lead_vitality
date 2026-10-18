@@ -484,6 +484,56 @@
     </div>
   </footer>
 
+  <!-- EXIT-INTENT OFFER -->
+  <dialog class="exit-modal" id="exit-modal" aria-labelledby="exit-title">
+    <button type="button" class="exit-close" data-exit-close aria-label="Close">×</button>
+    <div class="exit-body">
+      <div class="exit-offer">
+        <p class="eyebrow"><span class="pulse-dot"></span> Before you go</p>
+        <h2 id="exit-title">Get <span class="accent">15 free</span> high-intent leads for <span data-exit-niche>your niche</span>.</h2>
+        <p>Test Lead Vitality™ before you spend a dollar. Tell us where you work and we'll send 15 verified, ready-to-buy leads from your area.</p>
+        <ul class="exit-points">
+          <li>Exclusive to you, never shared</li>
+          <li>Phone-verified and pre-qualified</li>
+          <li>No credit card, no contract</li>
+        </ul>
+      </div>
+      <form class="lead-form exit-form" id="exit-form" novalidate>
+        <label>
+          <span>First name</span>
+          <input type="text" name="first_name" autocomplete="given-name" required>
+        </label>
+        <label>
+          <span>Email</span>
+          <input type="email" name="email" autocomplete="email" required>
+        </label>
+        <label>
+          <span>Phone</span>
+          <input type="tel" name="phone" autocomplete="tel" required>
+        </label>
+        <div class="form-row">
+          <label>
+            <span>Your niche</span>
+            <select name="industry" id="exit-industry" required>
+              <option value="">Select</option>
+            </select>
+          </label>
+          <label>
+            <span>Service ZIP</span>
+            <input type="text" name="zip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" autocomplete="postal-code" required>
+          </label>
+        </div>
+        <label class="consent">
+          <input type="checkbox" name="consent" required>
+          <span>I agree to be contacted by Lead Vitality™ by phone, text or email about this offer. Message and data rates may apply. Reply STOP to opt out.</span>
+        </label>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Send my 15 free leads</button>
+        <p class="form-status" role="status"></p>
+        <button type="button" class="exit-decline" data-exit-close>No thanks, I have enough clients</button>
+      </form>
+    </div>
+  </dialog>
+
   <script src="assets/js/main.js" defer></script>
 </body>
 </html>

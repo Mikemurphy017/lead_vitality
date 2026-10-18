@@ -14,6 +14,7 @@ Marketing site for **Lead Vitality™**, which delivers high-intent, ready-to-bu
 - **Pricing tiers** (Starter / Growth / Dominate), quote-based.
 - **FAQ.**
 - **"Check my territory" lead-capture form** with validation and an SMS/email consent checkbox.
+- **Exit-intent popup** offering 15 free high-intent leads for the visitor's niche (see below).
 
 ## Project structure
 
@@ -36,6 +37,18 @@ python3 -m http.server 8000
 ## Receiving form submissions
 
 By default the form only shows a confirmation message on screen. To receive submissions, set `FORM_ENDPOINT` at the top of `assets/js/main.js` to any endpoint that accepts a JSON POST, such as Formspree, a Zapier/Make webhook or your CRM's intake URL.
+
+Each submission includes a `source` field: `territory-check` for the main form and `exit-intent-15-free-leads` for the popup.
+
+## Exit-intent popup
+
+The "15 free leads" offer opens when a visitor looks likely to leave:
+
+- **Desktop:** the cursor moves up out of the page toward the tabs or close button.
+- **Phones/tablets:** a fast scroll back up after reading about a third of the page.
+- **Any device:** returning to the tab after switching away (after 30+ seconds on the page).
+
+It never opens in the first 8 seconds, shows at most once per visit, stays hidden for 3 days after being dismissed, and never shows again once someone submits either form. These settings are in `initExitIntent()` in `assets/js/main.js`.
 
 ## Customizing industries
 

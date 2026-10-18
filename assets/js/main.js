@@ -54,7 +54,7 @@ function renderIndustries() {
   const chips = $('#hero-chips');
   const grid = $('#industry-grid');
   const footer = $('#footer-industries');
-  const select = $('#form-industry');
+  const selects = [$('#form-industry'), $('#exit-industry')];
 
   INDUSTRIES.forEach((ind, i) => {
     const chip = document.createElement('button');
@@ -83,10 +83,12 @@ function renderIndustries() {
     link.addEventListener('click', () => selectIndustry(ind.id));
     footer.appendChild(link);
 
-    const opt = document.createElement('option');
-    opt.value = ind.label;
-    opt.textContent = ind.label;
-    select.appendChild(opt);
+    selects.forEach((select) => {
+      const opt = document.createElement('option');
+      opt.value = ind.label;
+      opt.textContent = ind.label;
+      select.appendChild(opt);
+    });
   });
 
   selectIndustry(INDUSTRIES[0].id, { updateForm: false });
@@ -110,7 +112,11 @@ function selectIndustry(id, { updateForm = true } = {}) {
     if (el) el.textContent = val;
   });
 
-  if (updateForm) $('#form-industry').value = ind.label;
+  if (updateForm) {
+    $('#form-industry').value = ind.label;
+    $('#exit-industry').value = ind.label;
+    $('[data-exit-niche]').textContent = ind.label.toLowerCase();
+  }
 }
 
 // ---------- ROI calculator ----------
@@ -166,10 +172,21 @@ function initNav() {
   });
 }
 
-// ---------- Lead form ----------
-function initForm() {
-  const form = $('#lead-form');
-  const status = $('#form-status');
+// ---------- Lead forms ----------
+async function sendLead(data) {
+  if (!FORM_ENDPOINT) return;
+  const res = await fetch(FORM_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
+
+function attachLeadForm(form, { source, successMessage, onSuccess }) {
+  const status = form.querySelector('.form-status');
+  const submit = form.querySelector('button[type="submit"]');
+  const submitLabel = submit.textContent;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -188,35 +205,117 @@ function initForm() {
       return;
     }
 
-    const data = Object.fromEntries(new FormData(form));
-    const submit = form.querySelector('button[type="submit"]');
+    const data = { ...Object.fromEntries(new FormData(form)), source };
     submit.disabled = true;
-    submit.textContent = 'Checking…';
+    submit.textContent = 'Sending…';
 
     try {
-      if (FORM_ENDPOINT) {
-        const res = await fetch(FORM_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      }
+      await sendLead(data);
       form.reset();
-      status.textContent = `Thanks, ${data.first_name}! We're pulling the lead-volume report for ${data.industry} in ${data.zip} and will be in touch within one business day.`;
+      status.textContent = successMessage(data);
       status.classList.add('success');
+      markCaptured();
+      if (onSuccess) onSuccess();
     } catch (err) {
       status.textContent = 'Something went wrong sending your request. Please try again in a moment.';
       status.classList.add('error');
     } finally {
       submit.disabled = false;
-      submit.textContent = 'Check my territory';
+      submit.textContent = submitLabel;
     }
   });
 
   form.addEventListener('input', (e) => {
     const label = e.target.closest('label');
     if (label) label.classList.remove('invalid');
+  });
+}
+
+function initForms() {
+  attachLeadForm($('#lead-form'), {
+    source: 'territory-check',
+    successMessage: (d) => `Thanks, ${d.first_name}! We're pulling the lead-volume report for ${d.industry} in ${d.zip} and will be in touch within one business day.`,
+  });
+  attachLeadForm($('#exit-form'), {
+    source: 'exit-intent-15-free-leads',
+    successMessage: (d) => `You're in, ${d.first_name}! We'll reach out within one business day to start delivering your 15 free leads in ${d.zip}.`,
+    onSuccess: () => {
+      $('#exit-form .exit-decline').textContent = 'Close';
+    },
+  });
+}
+
+// ---------- Exit-intent offer ----------
+const EXIT_KEY = 'lv_exit_offer';
+
+function storageGet(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function storageSet(key, val) {
+  try { localStorage.setItem(key, val); } catch { /* storage unavailable */ }
+}
+function markCaptured() { storageSet(EXIT_KEY, 'captured'); }
+
+function initExitIntent() {
+  const modal = $('#exit-modal');
+  if (!modal || typeof modal.showModal !== 'function') return;
+
+  const DISMISS_DAYS = 3;
+  const MIN_TIME_ON_PAGE = 8000;
+  const loadedAt = Date.now();
+  let shown = false;
+
+  const eligible = () => {
+    if (shown || Date.now() - loadedAt < MIN_TIME_ON_PAGE) return false;
+    const saved = storageGet(EXIT_KEY);
+    if (saved === 'captured') return false;
+    if (saved && Date.now() - Number(saved) < DISMISS_DAYS * 864e5) return false;
+    return true;
+  };
+
+  const open = () => {
+    if (!eligible()) return;
+    shown = true;
+    modal.showModal();
+    document.body.classList.add('modal-open');
+  };
+
+  const close = () => modal.close();
+  modal.addEventListener('close', () => {
+    document.body.classList.remove('modal-open');
+    if (storageGet(EXIT_KEY) !== 'captured') storageSet(EXIT_KEY, String(Date.now()));
+  });
+  $('#exit-industry').addEventListener('change', (e) => {
+    $('[data-exit-niche]').textContent = e.target.value ? e.target.value.toLowerCase() : 'your niche';
+  });
+  modal.querySelectorAll('[data-exit-close]').forEach((btn) => btn.addEventListener('click', close));
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+
+  // Desktop: cursor heads toward the tab bar / close button.
+  document.addEventListener('mouseout', (e) => {
+    if (!e.relatedTarget && e.clientY <= 10) open();
+  });
+
+  // Touch devices: a quick scroll back up after reading part of the page.
+  if (matchMedia('(hover: none)').matches) {
+    let lastY = window.scrollY;
+    let lastT = performance.now();
+    let maxY = 0;
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY;
+      const t = performance.now();
+      maxY = Math.max(maxY, y);
+      const speed = (lastY - y) / Math.max(t - lastT, 1); // px per ms, upward
+      const readEnough = maxY > document.documentElement.scrollHeight * 0.35;
+      if (readEnough && speed > 2.5 && y < maxY - 400) open();
+      lastY = y;
+      lastT = t;
+    }, { passive: true });
+  }
+
+  // Leaving the tab: show the offer when they come back.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && Date.now() - loadedAt > 30000) open();
   });
 }
 
@@ -241,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderIndustries();
   initROI();
   initNav();
-  initForm();
+  initForms();
+  initExitIntent();
   initReveal();
 });

@@ -321,3 +321,39 @@ p { margin: 0 0 1em; }
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .ekg path { stroke-dashoffset: 0; }
 }
+
+/* ---------- Exit-intent modal ---------- */
+body.modal-open { overflow: hidden; }
+.exit-modal {
+  width: min(880px, 100% - 32px); max-height: calc(100% - 32px); padding: 0;
+  border: 0; border-radius: 24px; background: #fff; color: var(--ink);
+  box-shadow: 0 40px 80px -20px rgba(0, 0, 0, .5); overflow: auto;
+}
+.exit-modal[open] { animation: modal-in .35s ease; }
+.exit-modal::backdrop { background: rgba(6, 42, 32, .65); backdrop-filter: blur(3px); }
+@keyframes modal-in { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+.exit-body { display: grid; grid-template-columns: 1fr 1fr; }
+.exit-offer {
+  padding: clamp(28px, 4vw, 44px);
+  background: radial-gradient(400px 300px at 100% 0%, rgba(163, 230, 53, .25), transparent 70%), var(--green-900);
+  color: #e6f2ed;
+}
+.exit-offer h2 { color: #fff; font-size: clamp(1.6rem, 3vw, 2.2rem); }
+.exit-offer .eyebrow { color: var(--lime); }
+.exit-offer .accent { background: linear-gradient(90deg, var(--lime), #4ade80); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.exit-points { list-style: none; padding: 0; margin: 1.2rem 0 0; display: grid; gap: .55rem; }
+.exit-points li::before { content: '✓'; color: var(--lime); font-weight: 800; margin-right: .6em; }
+.exit-form { box-shadow: none; border-radius: 0; gap: 12px; padding: clamp(24px, 4vw, 36px); }
+.exit-close {
+  position: absolute; top: 12px; right: 12px; z-index: 2; width: 36px; height: 36px; border-radius: 50%;
+  border: 0; background: var(--bg-soft); color: var(--ink); font-size: 1.5rem; line-height: 1; cursor: pointer;
+}
+.exit-close:hover { background: var(--line); }
+.exit-decline { background: none; border: 0; color: var(--ink-soft); font: 500 .85rem var(--font); text-decoration: underline; cursor: pointer; justify-self: center; padding: 4px; }
+
+@media (max-width: 720px) {
+  .exit-body { grid-template-columns: 1fr; }
+  .exit-offer { padding: 28px 22px 22px; }
+  .exit-offer > p:not(.eyebrow), .exit-points { display: none; }
+  .exit-close { background: rgba(255, 255, 255, .15); color: #fff; }
+}
