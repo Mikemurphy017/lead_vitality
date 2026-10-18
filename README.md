@@ -48,7 +48,7 @@ The "15 free leads" offer opens when a visitor looks likely to leave:
 - **Phones/tablets:** a fast scroll back up after reading about a third of the page.
 - **Any device:** returning to the tab after switching away (after 30+ seconds on the page).
 
-It never opens in the first 8 seconds, shows at most once per visit, stays hidden for 3 days after being dismissed, and never shows again once someone submits either form. These settings are in `initExitIntent()` in `assets/js/main.js`.
+It never opens in the first 5 seconds, shows at most once per visit, stays hidden for 3 days after being dismissed, and never shows again once someone submits either form. These settings are in `initExitIntent()` in `assets/js/main.js`.
 
 ## Customizing industries
 

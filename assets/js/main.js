@@ -261,7 +261,7 @@ function initExitIntent() {
   if (!modal || typeof modal.showModal !== 'function') return;
 
   const DISMISS_DAYS = 3;
-  const MIN_TIME_ON_PAGE = 8000;
+  const MIN_TIME_ON_PAGE = 5000;
   const loadedAt = Date.now();
   let shown = false;
 
@@ -291,9 +291,10 @@ function initExitIntent() {
   modal.querySelectorAll('[data-exit-close]').forEach((btn) => btn.addEventListener('click', close));
   modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
 
-  // Desktop: cursor heads toward the tab bar / close button.
-  document.addEventListener('mouseout', (e) => {
-    if (!e.relatedTarget && e.clientY <= 10) open();
+  // Desktop: cursor leaves through the top of the window, toward the tabs / close button.
+  // Fast movements can report a Y well below the edge, so allow some slack.
+  document.documentElement.addEventListener('mouseleave', (e) => {
+    if (e.clientY < 50) open();
   });
 
   // Touch devices: a quick scroll back up after reading part of the page.
